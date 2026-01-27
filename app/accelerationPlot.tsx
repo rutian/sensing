@@ -3,17 +3,17 @@ import uPlot from 'uplot';
 import UplotReact from 'uplot-react';
 import 'uplot/dist/uPlot.min.css';
 
-interface OrientationData {
+interface accelerationData{
   timeStamp: number[];
-  pitch: number[];
-  roll: number[];
-  yaw: number[];
+  x: number[];
+  y: number[];
+  z: number[];
 }
 
-export default function OrientationPlot (props: OrientationData){
+export default function accelerationPlot (props: accelerationData){
 
   const options: uPlot.Options = {
-    title: "Device Orientation Over Time",
+    title: "Device Acceleration Over Time",
     width: 300,
     height: 300,
     pxAlign: false,
@@ -24,7 +24,7 @@ export default function OrientationPlot (props: OrientationData){
       },
       y: {
         auto: false,
-        range: [-90, 90],
+        range: [-10, 10],
       },
     },
     axes: [
@@ -35,31 +35,38 @@ export default function OrientationPlot (props: OrientationData){
     series: [
       {show: false},
       {
-        label: "Pitch (Beta)",
+        label: "X",
         stroke: "blue",
         fill: "rgba(0, 0, 255, 0.1)",
       },
       {
-        label: "Roll (Gamma)",
+        label: "Y",
         stroke: "green",
         fill: "rgba(0, 255, 0, 0.1)",
       },
+      {
+        label: "Z",
+        stroke: "red",
+        fill: "rgba(255, 0, 0, 0.1)",
+      }
 
     ],
   };
 
   const data: uPlot.AlignedData = [
     props.timeStamp,
-    props.pitch,
-    props.roll,
+    props.x,
+    props.y,
+    props.z,
   ];
 
   const chartRef = useRef<uPlot | null>(null);
 
   const updatePlot = () => {
     if (chartRef.current) {
+      
       chartRef.current.setData(data, true);
-      console.log('updating which plot');
+      console.log('updating accel plot');
       chartRef.current.redraw(false)
     }
   };
