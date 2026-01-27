@@ -5,9 +5,8 @@ import 'uplot/dist/uPlot.min.css';
 
 interface accelerationData{
   timeStamp: number[];
-  x: number[];
-  y: number[];
   z: number[];
+  filteredZ: number[];
 }
 
 export default function accelerationPlot (props: accelerationData){
@@ -35,17 +34,12 @@ export default function accelerationPlot (props: accelerationData){
     series: [
       {show: false},
       {
-        label: "X",
-        stroke: "blue",
-        fill: "rgba(0, 0, 255, 0.1)",
+        label: "Z Raw",
+        stroke: "pink",
+        fill: "rgba(233, 129, 129, 0.1)",
       },
-      {
-        label: "Y",
-        stroke: "green",
-        fill: "rgba(0, 255, 0, 0.1)",
-      },
-      {
-        label: "Z",
+            {
+        label: "Z Filtered",
         stroke: "red",
         fill: "rgba(255, 0, 0, 0.1)",
       }
@@ -55,9 +49,8 @@ export default function accelerationPlot (props: accelerationData){
 
   const data: uPlot.AlignedData = [
     props.timeStamp,
-    props.x,
-    props.y,
     props.z,
+    props.filteredZ
   ];
 
   const chartRef = useRef<uPlot | null>(null);
@@ -66,7 +59,6 @@ export default function accelerationPlot (props: accelerationData){
     if (chartRef.current) {
       
       chartRef.current.setData(data, true);
-      console.log('updating accel plot');
       chartRef.current.redraw(false)
     }
   };

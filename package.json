@@ -9,12 +9,18 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.7",
     "@nckrtl/chartjs-plugin-streaming": "^3.0.1",
+    "@react-three/fiber": "^9.5.0",
+    "@types/three": "^0.182.0",
     "chart.js": "^4.5.1",
     "next": "16.1.5",
     "react": "19.2.3",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.3",
+    "three": "^0.182.0",
     "uplot": "^1.6.32",
     "uplot-react": "^1.2.4"
   },

@@ -1,103 +1,145 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+
+import { useRef, useState } from "react";
 import OrientationPlot from "./orientationPlot";
 import AccelerationPlot from "./accelerationPlot";
+import ParameterSlider from './parameterSlider';
+import { Box } from '@mui/material';
+import Game from './game';
+import { Canvas } from '@react-three/fiber';
+
 
 export default function Home() {
 
   const initialTime = Date.now();
-  const [alpha, setAlpha] = useState(0);
-  const [beta, setBeta] = useState(0);
-  const [gamma, setGamma] = useState(0);
-  const [timeStamp, setTimeStamp] = useState(0);
-  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [deviceOrientationPermissionGranted, setDeviceOrientationPermissionGranted] = useState(false);
 
   const orientationTimeStampArray: number[] = [];
-  const alphaArray: number[] = [];
   const betaArray: number[] = [];
   const gammaArray: number[] = [];
 
-
   const accelTimeStampArray: number[] = [];
-  const accelXArray: number[] = [];
-  const accelYArray: number[] = [];
   const accelZArray: number[] = [];
+  const accelZFilteredArray: number[] = [];
+
+  const lowPassAlpha = useRef<number>(0.2);
+  const jumpThreshold = useRef<number>(3.0);
+
+  let jumpDebounceTimeMillis = 300; 
+  let lastJumpTimeMillis = 0;
 
   const maxDataPoints = 250;
 
   const handleMotion = (event: DeviceMotionEvent) => {
+
     if (accelTimeStampArray.length >= maxDataPoints) {
       accelTimeStampArray.shift();
-      accelXArray.shift();
-      accelYArray.shift();
       accelZArray.shift();
+      accelZFilteredArray.shift();
     }
-    accelXArray.push(event.acceleration?.x || 0);
-    accelYArray.push(event.acceleration?.y || 0);
+
+    // raw data
     accelZArray.push(event.acceleration?.z || 0);
+
+    // filtered data
+    let filteredValue = (lowPassAlpha.current * (event.acceleration?.z || 0)) +
+      ((1 - lowPassAlpha.current) * (accelZFilteredArray.length > 0 ? accelZFilteredArray[accelZFilteredArray.length - 1] : 0));
+
+    accelZFilteredArray.push(filteredValue);
+    
+    // time stamp
     accelTimeStampArray.push((event.timeStamp + initialTime) / 1000);
+
+    // jump detection
+    if (Math.abs(filteredValue) > jumpThreshold.current) {
+      const currentTime = event.timeStamp;
+      if (currentTime - lastJumpTimeMillis > jumpDebounceTimeMillis) {
+        console.log("Jump detected at time:", currentTime);
+        lastJumpTimeMillis = currentTime;
+
+      }
+    }
+  }
+
+  const requestOrientationPermission = () => {
+    (DeviceOrientationEvent as any).requestPermission()
+      .then((state: string) => {
+        if (state === 'granted') {
+          window.addEventListener('deviceorientation', handleOrientation);
+          window.addEventListener('devicemotion', handleMotion);
+          setDeviceOrientationPermissionGranted(true);
+        }
+      })
+      .catch(console.error)
   }
 
   const handleOrientation = (event: DeviceOrientationEvent) => {
-    // setAlpha(event.alpha || 0);
-    // setBeta(event.beta || 0);
-    // setGamma(event.gamma || 0);
-    // setTimeStamp(event.timeStamp / 1000);
 
     if (orientationTimeStampArray.length >= maxDataPoints) {
       orientationTimeStampArray.shift();
-      alphaArray.shift();
       betaArray.shift();
       gammaArray.shift();
     }
 
     orientationTimeStampArray.push((event.timeStamp + initialTime) / 1000);
-    alphaArray.push(event.alpha || 0);
     betaArray.push(event.beta || 0);
     gammaArray.push(event.gamma || 0);
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-start p-12">
+    <Box sx={{ p: 4, maxWidth: 800, margin: '0 auto' }}>
+
+      <Canvas shadows style={{ background: '#f2f2f2', height: '500px' }}>
+      <Game />
+      </Canvas>
     
-      <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-      Telemetry
-      </h1>
-      
-      <div className="h-5"></div>
+      <Typography variant="h4" gutterBottom>
+        Telemetry
+      </Typography>
+
+      <div className="h-8"></div>
       
       <OrientationPlot
         timeStamp={orientationTimeStampArray}
         pitch={betaArray}
         roll={gammaArray}
-        yaw={alphaArray}/>
+        />
 
-      <div className="h-5"></div>
+      <div className="h-8"></div>
 
       <AccelerationPlot
         timeStamp={accelTimeStampArray}
-        x={accelXArray}
-        y={accelYArray}
-        z={accelZArray}/>
+        z={accelZArray}
+        filteredZ={accelZFilteredArray}/>
 
+      <div className="h-8"></div>
       
-      {!permissionGranted ? (<div onClick={() => {
-        (DeviceOrientationEvent as any).requestPermission()
-          .then((state: string) => {
-            if (state === 'granted') {
-              window.addEventListener('deviceorientation', handleOrientation);
-              window.addEventListener('devicemotion', handleMotion); 
-              setPermissionGranted(true);
-            }
-          })
-          .catch(console.error)
-      }}
-        className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-      >
-        Enable Motion Sensing
-      </div>) : (null)}
-    </main>
+      <Typography variant="h4"  sx={{ mt: 4 }}>
+        Tunable Parameters
+      </Typography>
+
+      <ParameterSlider initialValue={lowPassAlpha.current}
+        min={0} max={1}
+        label='Low-pass filter alpha'
+        onChange={(value) => {
+          console.log("Setting lowPassAlpha to ", value);
+          lowPassAlpha.current = value;
+        }} />
+      
+      <ParameterSlider initialValue={jumpThreshold.current}
+        min={0} max={20}
+        label='Jump Detection Threshold (m/s²)'
+        onChange={(value) => {
+          console.log("Setting jumpThreshold to ", value);
+          jumpThreshold.current = value;
+        }} />
+
+      <Button onClick={()=>requestOrientationPermission()} variant="outlined" sx={{ borderRadius: '20px', display: 'block', margin: '0 auto' }}>Enable Motion Sensing To Start</Button>
+
+    </Box>
 
 
   );

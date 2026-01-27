@@ -7,10 +7,10 @@ interface OrientationData {
   timeStamp: number[];
   pitch: number[];
   roll: number[];
-  yaw: number[];
+  yaw?: number[];
 }
 
-export default function OrientationPlot (props: OrientationData){
+export default function OrientationPlot(props: OrientationData) {
 
   const options: uPlot.Options = {
     title: "Device Orientation Over Time",
@@ -31,9 +31,9 @@ export default function OrientationPlot (props: OrientationData){
       {
         show: true,
       }],
-    
+
     series: [
-      {show: false},
+      { show: false },
       {
         label: "Pitch (Beta)",
         stroke: "blue",
@@ -59,7 +59,6 @@ export default function OrientationPlot (props: OrientationData){
   const updatePlot = () => {
     if (chartRef.current) {
       chartRef.current.setData(data, true);
-      console.log('updating which plot');
       chartRef.current.redraw(false)
     }
   };
