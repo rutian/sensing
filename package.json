@@ -9,9 +9,14 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@nckrtl/chartjs-plugin-streaming": "^3.0.1",
+    "chart.js": "^4.5.1",
     "next": "16.1.5",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "19.2.3",
+    "uplot": "^1.6.32",
+    "uplot-react": "^1.2.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
