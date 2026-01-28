@@ -11,7 +11,7 @@ interface boostPadProps {
     furthestZ:number;
     carMeshRef: React.Ref<THREE.Mesh>;
     deboost?: boolean;
-    updateVelocity: () => void;
+    onIntersectWithCart: () => void;
 }
 
 export default function BoostPad( props: boostPadProps ) {
@@ -33,7 +33,7 @@ export default function BoostPad( props: boostPadProps ) {
 
         if (boostPadBoundingBox.intersectsBox(carBoundingBox)) {
             setIntersectsCar(true);
-            props.updateVelocity();
+            props.onIntersectWithCart();
         } else {
             setIntersectsCar(false);
         }

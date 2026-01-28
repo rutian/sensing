@@ -10,6 +10,7 @@ import BoostPad from './game_boostPad';
 
 interface gameProps {
     steerInput: number;
+    jumpInput: boolean;
     distance: number;
     gameState: 'notStarted' | 'running' | 'ended';
     updateDistance: (newDistance: number) => void;
@@ -65,15 +66,16 @@ export default function Game(props: gameProps) {
     return (
         <>
             <fog attach="fog" args={[fogColor, nearDistance, farDistance]} />
-            <Car meshRef={carMesh} steerInput={props.steerInput} />
 
             <Ground />
 
-            <BoostPad initialX={1} initialZ={0} velocity={velocity} rerenderZThreshold={rerenderZThreshold} updateVelocity={incrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
-            <BoostPad initialX={3} initialZ={-50} velocity={velocity} rerenderZThreshold={rerenderZThreshold} updateVelocity={incrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
-            <BoostPad initialX={-2} initialZ={-100} velocity={velocity}  deboost={true} rerenderZThreshold={rerenderZThreshold} updateVelocity={decrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
+            <Car meshRef={carMesh} steerInput={props.steerInput} jumping={props.jumpInput} />
+            <BoostPad initialX={1} initialZ={0} velocity={velocity} rerenderZThreshold={rerenderZThreshold} onIntersectWithCart={incrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
+            <BoostPad initialX={3} initialZ={-50} velocity={velocity} rerenderZThreshold={rerenderZThreshold} onIntersectWithCart={incrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
+            <BoostPad initialX={-2} initialZ={-100} velocity={velocity}  deboost={true} rerenderZThreshold={rerenderZThreshold} onIntersectWithCart={decrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
+            <BoostPad initialX={-1.5} initialZ={-120} velocity={velocity}  deboost={true} rerenderZThreshold={rerenderZThreshold} onIntersectWithCart={decrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
 
-            <ambientLight intensity={0.4} />
+            <ambientLight intensity={  .4} />
 
             <directionalLight position={[2, 5, 0]} castShadow={true} intensity={Math.PI / 2} color={"#fffbf3"}>
                 <orthographicCamera

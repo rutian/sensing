@@ -5,6 +5,7 @@ import {useFrame, ThreeElements } from '@react-three/fiber'
 
 interface carProps { 
     steerInput: number;
+    jumping: boolean;
     meshRef: React.Ref<THREE.Mesh>;
 }
 

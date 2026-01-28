@@ -20,6 +20,7 @@ export default function Home() {
   const [distance, setDistance] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(gameTimeSeconds);
   const [gameState, setGameState] = useState<'notStarted' | 'running' | 'ended'>('notStarted');
+
   const [numberOfJumps, setNumberOfJumps] = useState(0);
   const [numberOfPossibleJumps, setNumberOfPossibleJumps] = useState(0);
 
@@ -37,10 +38,10 @@ export default function Home() {
   const accelZFilteredArray: number[] = [];
 
   const lowPassAlpha = useRef<number>(0.2);
-  const jumpThreshold = useRef<number>(2.5);
-  const possibleJumpThreshold = 1.0;
+  const jumpThreshold = useRef<number>(3.5);
+  const possibleJumpThreshold = 2.0;
 
-  let jumpDebounceTimeMillis = 300; 
+  let jumpDebounceTimeMillis = 300;
   let lastJumpTimeMillis = 0;
   let lastPossibleJumpTimeMillis = 0;
 
@@ -62,7 +63,7 @@ export default function Home() {
     let filteredValue = (lowPassAlpha.current * (event.acceleration?.z || 0)) +
       ((1 - lowPassAlpha.current) * (accelZFilteredArray.length > 0 ? accelZFilteredArray[accelZFilteredArray.length - 1] : 0));
     accelZFilteredArray.push(filteredValue);
-    
+
     // time stamp
     accelTimeStampArray.push((event.timeStamp + initialTime) / 1000);
 
@@ -75,7 +76,7 @@ export default function Home() {
         setNumberOfJumps((prev) => prev + 1);
       }
     }
-    
+
     // detect all possible jumps for telemetry
     if (filteredValue > possibleJumpThreshold) {
       const currentTime = event.timeStamp;
@@ -84,7 +85,7 @@ export default function Home() {
         setNumberOfPossibleJumps((prev) => prev + 1);
       }
     }
-    
+
   }
 
   const startGame = () => {
@@ -96,9 +97,9 @@ export default function Home() {
           setGameState('ended');
           return 0;
         }
-        return(prevTime - 1);
+        return (prevTime - 1);
 
-      } )
+      })
     }, 1000);
   }
 
@@ -117,7 +118,7 @@ export default function Home() {
     } else if (gameState === 'ended') {
       setDistance(0);
       setTimeRemaining(gameTimeSeconds);
-       startGame();
+      startGame();
     } else if (gameState === 'running') {
     }
 
@@ -145,79 +146,79 @@ export default function Home() {
   } else if (gameState === 'running') {
     buttonText = "Game in Progress...";
   } else if (gameState === 'ended') {
-    buttonText = "Game Over, replay?";
+    buttonText = "Time's up, replay?";
   }
 
   return (
-    <Box sx={{ p: 4, maxWidth: 800, margin: '0 auto' }}>
+    <Box sx={{ p: 0, maxWidth: 800, margin: '0 auto' }}>
 
-      <Canvas shadows style={{ background: '#f2f2f2', height: '550px', width: '100%' }}>
-        <Game steerInput={gamma} distance={distance} updateDistance={(val) => setDistance(val)} timeRemaining={timeRemaining} gameState={gameState} />
-      </Canvas>
-      
-      <div className="h-8"></div>
-      <Button onClick={()=>requestOrientationPermission()} variant="outlined" sx={{ borderRadius: '20px', display: 'block', margin: '0 auto' }}>{buttonText}</Button>
-
-    
-      <Box sx={{ position: 'absolute', top: 15, left: 15, width: '100%',  color: '#333' }}>
-        <Typography variant="overline" sx={{fontSize: '1rem'}}> Distance Traveled: {distance.toFixed(0)} m </Typography>
-        <div></div>
-        <Typography variant="overline" sx={{fontSize: '1rem'}}> Time Remaining: {timeRemaining.toFixed(0)} seconds </Typography>
+      <Box sx={{ position: 'relative', width: '100%', height: '700px' }}>
+        <Canvas shadows style={{ background: '#f2f2f2', height: '100%', width: '100%' }}>
+          <Game jumpInput={true} steerInput={gamma} distance={distance} updateDistance={(val) => setDistance(val)} timeRemaining={timeRemaining} gameState={gameState} />
+        </Canvas>
+        {(gameState != 'running') ?
+          <Button onClick={() => requestOrientationPermission()} variant="contained" sx={{ background: '#818584', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', borderRadius: '15px' }}>{buttonText}</Button> :
+          <></>}
       </Box>
-    
-      <Typography variant="h4" gutterBottom>
-        Telemetry
-      </Typography>
 
-      <div className="h-8"></div>
-      
-      {/* <OrientationPlot
+      <Box sx={{ position: 'absolute', top: 15, left: 15, width: '100%', color: '#333' }}>
+        <Typography variant="overline" sx={{ lineHeight: '1rem', fontSize: '1rem' }}> Distance Traveled: {distance.toFixed(0)} m </Typography>
+        <br></br>
+        <Typography variant="overline" sx={{ lineHeight: '1rem' ,fontSize: '1rem' }}> Time Remaining: {timeRemaining.toFixed(0)} seconds </Typography>
+      </Box>
+
+      <Box sx={{ pt: 12, pl: 4, pr:4,  maxWidth: 800, margin: '0 auto' }}>
+
+        <Typography variant="h5" sx={{ mt: 4 }}>
+          Telemetry/Parameters
+        </Typography>
+
+        {/* <OrientationPlot
         timeStamp={orientationTimeStampArray}
         pitch={betaArray}
         roll={gammaArray}
         /> */}
 
-      <div className="h-8"></div>
-{/* 
+        {/* <div className="h-8"></div> */}
+        {/* 
       <AccelerationPlot
         timeStamp={accelTimeStampArray}
         z={accelZArray}
         filteredZ={accelZFilteredArray}/> */}
 
-      <div className="h-8"></div>
-      
-      <Typography variant="h5"  sx={{ mt: 4 }}>
-        Telemetry/Parameters
-      </Typography>
+        {/* <div className="h-8"></div> */}
 
-      <ParameterSlider initialValue={lowPassAlpha.current}
-        min={0} max={1}
-        label='Low-pass filter alpha'
-        onChange={(value) => {
-          console.log("Setting lowPassAlpha to ", value);
-          lowPassAlpha.current = value;
-        }} />
-      
-      <ParameterSlider initialValue={jumpThreshold.current}
-        min={0} max={20}
-        label='Jump Detection Threshold (m/s²)'
-        onChange={(value) => {
-          console.log("Setting jumpThreshold to ", value);
-          jumpThreshold.current = value;
-        }} />
 
-      <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
-        # of Jumps: {numberOfJumps}
-      </Typography>
-      <div/>
-      <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
-        # of Possible Jumps: {numberOfPossibleJumps}
-      </Typography>    
-      <div/>
-      <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
-        "Sensitivity": {(numberOfJumps / (numberOfPossibleJumps)).toFixed(1)}
-      </Typography>
 
+        <ParameterSlider initialValue={lowPassAlpha.current}
+          min={0} max={1}
+          label='Low-pass filter alpha'
+          onChange={(value) => {
+            console.log("Setting lowPassAlpha to ", value);
+            lowPassAlpha.current = value;
+          }} />
+
+        <ParameterSlider initialValue={jumpThreshold.current}
+          min={0} max={20}
+          label='Jump Detection Threshold (m/s²)'
+          onChange={(value) => {
+            console.log("Setting jumpThreshold to ", value);
+            jumpThreshold.current = value;
+          }} />
+
+        <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
+          # of Jumps: {numberOfJumps}
+        </Typography>
+        <div />
+        <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
+          # of Possible Jumps: {numberOfPossibleJumps}
+        </Typography>
+        <div />
+        <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
+          "Sensitivity": {(numberOfJumps / (numberOfPossibleJumps)).toFixed(1)}
+        </Typography>
+
+      </Box>
     </Box>
 
 
