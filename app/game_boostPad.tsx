@@ -1,25 +1,26 @@
 
 import * as THREE from 'three'
 import { useRef, useState } from 'react'
-import { useFrame, ThreeElements } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 
 interface boostPadProps {
     initialX: number,
     initialZ: number,
     velocity: number,
     rerenderZThreshold: number;
-    furthestZ:number;
-    carMeshRef: React.Ref<THREE.Mesh>;
+    furthestZ: number;
     deboost?: boolean;
+    carMeshRef: React.Ref<THREE.Mesh>;
     onIntersectWithCart: () => void;
 }
 
-export default function BoostPad( props: boostPadProps ) {
-    
+export default function BoostPad(props: boostPadProps) {
+
     const meshRef = useRef<THREE.Mesh>(null!)
     const [intersectsCar, setIntersectsCar] = useState(false);
 
     useFrame((state, delta) => {
+
         meshRef.current.position.z += props.velocity * delta;
 
         // put it back to the farthest position when it falls off the screen
@@ -32,8 +33,11 @@ export default function BoostPad( props: boostPadProps ) {
         const carBoundingBox = new THREE.Box3().setFromObject((props.carMeshRef as React.RefObject<THREE.Mesh>).current);
 
         if (boostPadBoundingBox.intersectsBox(carBoundingBox)) {
+            if (!intersectsCar) {
+                // only trigger on transition from not intersecting to intersecting
+                props.onIntersectWithCart();
+            }
             setIntersectsCar(true);
-            props.onIntersectWithCart();
         } else {
             setIntersectsCar(false);
         }

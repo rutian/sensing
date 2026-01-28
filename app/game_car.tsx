@@ -1,7 +1,6 @@
 
 import * as THREE from 'three'
-import { useRef, useState } from 'react'
-import { useFrame, ThreeElements } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 
 interface carProps {
     steerInput: number;
@@ -11,12 +10,12 @@ interface carProps {
 
 export default function Car(props: carProps) {
 
-
-    const range = 5;
+    const steeringInputDeadBand = 2;
+    const maxLeftOrRight = 5;
 
     useFrame((state, delta) => {
+
         let meshRef = props.meshRef as React.RefObject<THREE.Mesh>;
-        meshRef.current.position.x += props.steerInput * delta / 2;
 
         if (props.jumping) {
             meshRef.current.position.y += .5;
@@ -32,18 +31,18 @@ export default function Car(props: carProps) {
 
         if (props.steerInput === undefined) {
             return;
-        } else if (Math.abs(props.steerInput) < 2) {
+        } else if (Math.abs(props.steerInput) < steeringInputDeadBand) {
             return;
+        } else {
+            meshRef.current.position.x += props.steerInput * delta / 2;
         }
 
-
-
-        if (meshRef.current.position.x > range) {
-            meshRef.current.position.x = -range;
-        } else if (meshRef.current.position.x < -range) {
-            meshRef.current.position.x = range;
+        // wrap around if the car goes out of bounds
+        if (meshRef.current.position.x > maxLeftOrRight) {
+            meshRef.current.position.x = -maxLeftOrRight;
+        } else if (meshRef.current.position.x < -maxLeftOrRight) {
+            meshRef.current.position.x = maxLeftOrRight;
         }
-
 
     });
 
@@ -55,5 +54,6 @@ export default function Car(props: carProps) {
             receiveShadow={true} >
             <boxGeometry args={[1.5, 1.2, 2]} />
             <meshStandardMaterial color='#ffb845' />
-        </mesh>)
+        </mesh>
+    )
 }

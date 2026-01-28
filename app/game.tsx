@@ -1,5 +1,3 @@
-
-import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three'
 import { useEffect, useRef, useState } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
@@ -50,32 +48,29 @@ export default function Game(props: gameProps) {
         props.updateDistance(props.distance + velocity * delta);
     });
 
-    const incrementVelocity = () => {
-        console.log("Boost pad hit! Increasing velocity: ", velocity + 1);
-        setVelocity(velocity + 1);
-    }
+    const incrementVelocity = () => { setVelocity(velocity + 5) }
 
-    const decrementVelocity = () => {
-        setVelocity(velocity * .9);
-    }
+    const decrementVelocity = () => { setVelocity(velocity * 0.9) }
 
     const fogColor = '#f1f1f1';
-    const nearDistance = 30;
-    const farDistance = 90
+    const fogNearDistance = 30;
+    const fogFarDistance = 90
 
     return (
         <>
-            <fog attach="fog" args={[fogColor, nearDistance, farDistance]} />
+            <fog attach="fog" args={[fogColor, fogNearDistance, fogFarDistance]} />
 
             <Ground />
 
             <Car meshRef={carMesh} steerInput={props.steerInput} jumping={props.jumpInput} />
+
             <BoostPad initialX={1} initialZ={0} velocity={velocity} rerenderZThreshold={rerenderZThreshold} onIntersectWithCart={incrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
             <BoostPad initialX={3} initialZ={-50} velocity={velocity} rerenderZThreshold={rerenderZThreshold} onIntersectWithCart={incrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
-            <BoostPad initialX={-2} initialZ={-100} velocity={velocity}  deboost={true} rerenderZThreshold={rerenderZThreshold} onIntersectWithCart={decrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
-            <BoostPad initialX={-1.5} initialZ={-120} velocity={velocity}  deboost={true} rerenderZThreshold={rerenderZThreshold} onIntersectWithCart={decrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
+            <BoostPad initialX={-2} initialZ={-100} velocity={velocity} deboost={true} rerenderZThreshold={rerenderZThreshold} onIntersectWithCart={decrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
+            <BoostPad initialX={-1.5} initialZ={-120} velocity={velocity} deboost={true} rerenderZThreshold={rerenderZThreshold} onIntersectWithCart={decrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
+            <BoostPad initialX={2.2} initialZ={-180} velocity={velocity} rerenderZThreshold={rerenderZThreshold} onIntersectWithCart={incrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
 
-            <ambientLight intensity={  .4} />
+            <ambientLight intensity={.4} />
 
             <directionalLight position={[2, 5, 0]} castShadow={true} intensity={Math.PI / 2} color={"#fffbf3"}>
                 <orthographicCamera
@@ -83,5 +78,6 @@ export default function Game(props: gameProps) {
                     args={[-shadowSize, shadowSize, shadowSize, -shadowSize, .1, 10]} // left, right, top, bottom, near, far
                 />
             </directionalLight>
-        </>)
+        </>
+    )
 };

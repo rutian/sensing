@@ -73,7 +73,7 @@ export const TelemetryPlot = React.memo((props: TelemetryData) => {
 
   useEffect(() => {
     setInterval(updatePlot, 20);
-  }, []);
+  }, []); // empty array ensures this runs once on mount
 
   return (
     <>
@@ -88,4 +88,4 @@ export const TelemetryPlot = React.memo((props: TelemetryData) => {
     </>
   );;
 
-}, () => true);
+}, () => true); // memoize to prevent re-renders, with comparator that always returns true (don't re-render)

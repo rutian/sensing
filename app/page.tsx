@@ -1,23 +1,23 @@
 "use client";
 
+import { useRef, useState } from "react";
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-
-import { useRef, useState } from "react";
-import ParameterSlider from './parameterSlider';
 import { Box } from '@mui/material';
-import Game from './game';
 import { Canvas } from '@react-three/fiber';
+
+import ParameterSlider from './parameterSlider';
+import Game from './game';
 import { TelemetryPlot } from './telemetryPlot';
 
-const gameTimeSeconds = 10;
+const totalTimePerGameSeconds = 15;
 
 export default function Home() {
 
   const initialTime = Date.now();
 
   const [distance, setDistance] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(gameTimeSeconds);
+  const [timeRemaining, setTimeRemaining] = useState(totalTimePerGameSeconds);
   const [gameState, setGameState] = useState<'notStarted' | 'running' | 'ended'>('notStarted');
 
   const [isJumping, setIsJumping] = useState(false);
@@ -41,7 +41,7 @@ export default function Home() {
   const jumpThreshold = useRef<number>(3.5);
   const possibleJumpThreshold = 2.0;
 
-  let jumpDebounceTimeMillis = 300;
+  const jumpDebounceTimeMillis = 300;
   let lastJumpTimeMillis = 0;
   let lastPossibleJumpTimeMillis = 0;
 
@@ -94,6 +94,11 @@ export default function Home() {
 
   const startGame = () => {
     setGameState('running');
+    
+    // reinitialize our jump counter
+    setNumberOfJumps(0);
+    setNumberOfPossibleJumps(0);
+
     intervalId = setInterval(() => {
       setTimeRemaining((prevTime) => {
         if (prevTime <= 1) {
@@ -106,7 +111,7 @@ export default function Home() {
     }, 1000);
   }
 
-  const requestOrientationPermission = () => {
+  const handleStartGameButton = () => {
     if (gameState === 'notStarted') {
       (DeviceOrientationEvent as any).requestPermission()
         .then((state: string) => {
@@ -120,9 +125,10 @@ export default function Home() {
         .catch(console.error)
     } else if (gameState === 'ended') {
       setDistance(0);
-      setTimeRemaining(gameTimeSeconds);
+      setTimeRemaining(totalTimePerGameSeconds);
       startGame();
     } else if (gameState === 'running') {
+      // do nothing
     }
 
   }
@@ -154,12 +160,12 @@ export default function Home() {
   return (
     <Box sx={{ p: 0, maxWidth: 800, margin: '0 auto' }}>
 
-      <Box sx={{ position: 'relative', width: '100%', height: '100vh' }}>
+      <Box sx={{ position: 'relative', width: '100%', height: '100vh' , maxHeight: 900 }}>
         <Canvas shadows style={{ background: '#f2f2f2', height: '100%', width: '100%' }}>
           <Game jumpInput={isJumping} steerInput={gamma} distance={distance} updateDistance={(val) => setDistance(val)} timeRemaining={timeRemaining} gameState={gameState} />
         </Canvas>
         {(gameState != 'running') ?
-          <Button onClick={() => requestOrientationPermission()} variant="contained" sx={{ background: '#818584', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', borderRadius: '15px' }}>{buttonText}</Button> :
+          <Button onClick={() => handleStartGameButton()} variant="contained" sx={{ background: '#818584', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', borderRadius: '15px' }}>{buttonText}</Button> :
           <></>}
       </Box>
 
@@ -168,6 +174,7 @@ export default function Home() {
         <br></br>
         <Typography variant="overline" sx={{ lineHeight: '1rem' ,fontSize: '1rem' }}> Time Remaining: {timeRemaining.toFixed(0)} seconds </Typography>
       </Box>
+
 
       <Box sx={{ pt: 12, pl: 4, pr:4,  maxWidth: 800, margin: '0 auto' }}>
 
@@ -193,7 +200,7 @@ export default function Home() {
           timeStamp={accelTimeStampArray}
           label={["raw accel", "filtered accel"]}
           data={[accelZArray, accelZFilteredArray]}
-          range={[-20, 20]} />
+          range={[-15, 15]} />
 
         <ParameterSlider initialValue={lowPassAlpha.current}
           min={0} max={1}
@@ -225,7 +232,6 @@ export default function Home() {
 
       </Box>
     </Box>
-
 
   );
 }
