@@ -5,11 +5,13 @@ import {useFrame, ThreeElements } from '@react-three/fiber'
 
 interface carProps { 
     steerInput: number;
+    meshRef: React.Ref<THREE.Mesh>;
 }
 
 export default function Car(props: carProps) {
 
-    const meshRef = useRef<THREE.Mesh>(null!)
+
+    const range = 5;
 
     useFrame((state, delta) => {
 
@@ -19,13 +21,21 @@ export default function Car(props: carProps) {
             return;
         }
 
+        let meshRef = props.meshRef as React.RefObject<THREE.Mesh>;
+
         meshRef.current.position.x += props.steerInput * delta/2;
+
+        if (meshRef.current.position.x > range) {
+            meshRef.current.position.x = -range;
+        } else if (meshRef.current.position.x < -range) {
+            meshRef.current.position.x = range;
+        }
     });
 
     return (
         <mesh
             position={[0,.6,10]}
-            ref={meshRef}
+            ref={props.meshRef}
             castShadow={true}
             receiveShadow={true} >
             <boxGeometry args={[1.5, 1.2, 2]} />

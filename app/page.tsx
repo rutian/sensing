@@ -20,6 +20,8 @@ export default function Home() {
   const [distance, setDistance] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(gameTimeSeconds);
   const [gameState, setGameState] = useState<'notStarted' | 'running' | 'ended'>('notStarted');
+  const [numberOfJumps, setNumberOfJumps] = useState(0);
+  const [numberOfPossibleJumps, setNumberOfPossibleJumps] = useState(0);
 
   let intervalId: NodeJS.Timeout;
 
@@ -35,15 +37,18 @@ export default function Home() {
   const accelZFilteredArray: number[] = [];
 
   const lowPassAlpha = useRef<number>(0.2);
-  const jumpThreshold = useRef<number>(3.0);
+  const jumpThreshold = useRef<number>(2.5);
+  const possibleJumpThreshold = 1.0;
 
   let jumpDebounceTimeMillis = 300; 
   let lastJumpTimeMillis = 0;
+  let lastPossibleJumpTimeMillis = 0;
 
   const maxDataPoints = 250;
 
   const handleMotion = (event: DeviceMotionEvent) => {
 
+    // not a great circular buffer but works for demo purposes
     if (accelTimeStampArray.length >= maxDataPoints) {
       accelTimeStampArray.shift();
       accelZArray.shift();
@@ -56,21 +61,30 @@ export default function Home() {
     // filtered data
     let filteredValue = (lowPassAlpha.current * (event.acceleration?.z || 0)) +
       ((1 - lowPassAlpha.current) * (accelZFilteredArray.length > 0 ? accelZFilteredArray[accelZFilteredArray.length - 1] : 0));
-
     accelZFilteredArray.push(filteredValue);
     
     // time stamp
     accelTimeStampArray.push((event.timeStamp + initialTime) / 1000);
 
     // jump detection
-    if (Math.abs(filteredValue) > jumpThreshold.current) {
+    if (filteredValue > jumpThreshold.current) {
       const currentTime = event.timeStamp;
       if (currentTime - lastJumpTimeMillis > jumpDebounceTimeMillis) {
         console.log("Jump detected at time:", currentTime);
         lastJumpTimeMillis = currentTime;
-
+        setNumberOfJumps((prev) => prev + 1);
       }
     }
+    
+    // detect all possible jumps for telemetry
+    if (filteredValue > possibleJumpThreshold) {
+      const currentTime = event.timeStamp;
+      if (currentTime - lastPossibleJumpTimeMillis > jumpDebounceTimeMillis) {
+        lastPossibleJumpTimeMillis = currentTime;
+        setNumberOfPossibleJumps((prev) => prev + 1);
+      }
+    }
+    
   }
 
   const startGame = () => {
@@ -172,8 +186,8 @@ export default function Home() {
 
       <div className="h-8"></div>
       
-      <Typography variant="h4"  sx={{ mt: 4 }}>
-        Tunable Parameters
+      <Typography variant="h5"  sx={{ mt: 4 }}>
+        Telemetry/Parameters
       </Typography>
 
       <ParameterSlider initialValue={lowPassAlpha.current}
@@ -192,6 +206,17 @@ export default function Home() {
           jumpThreshold.current = value;
         }} />
 
+      <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
+        # of Jumps: {numberOfJumps}
+      </Typography>
+      <div/>
+      <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
+        # of Possible Jumps: {numberOfPossibleJumps}
+      </Typography>    
+      <div/>
+      <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
+        "Sensitivity": {(numberOfJumps / (numberOfPossibleJumps)).toFixed(1)}
+      </Typography>
 
     </Box>
 

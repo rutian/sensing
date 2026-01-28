@@ -1,7 +1,7 @@
 
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three'
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 
 import Ground from './game_ground';
@@ -16,14 +16,17 @@ interface gameProps {
     timeRemaining: number;
     // You can add props if needed
 }
+
 export default function Game(props: gameProps) {
 
     const [velocity, setVelocity] = useState(0);
 
+    // store the child mesh here, so that we can intersection test it with other sibling objects in the scene
+    const carMesh = useRef<THREE.Mesh>(null!);
+
     const rerenderZThreshold = 20;
     const shadowSize = 20;
     const furthestZ = -100;
-
 
     // setup the camera
     const { camera } = useThree();
@@ -34,14 +37,26 @@ export default function Game(props: gameProps) {
         camera.updateProjectionMatrix();
     }, [camera])
 
-    useFrame((state, delta) => {
-        props.updateDistance(props.distance + velocity * delta);
+    useEffect(() => {
         if (props.gameState !== 'running') {
             setVelocity(0);
         } else {
             setVelocity(10);
         }
+    }, [props.gameState])
+
+    useFrame((state, delta) => {
+        props.updateDistance(props.distance + velocity * delta);
     });
+
+    const incrementVelocity = () => {
+        console.log("Boost pad hit! Increasing velocity: ", velocity + 1);
+        setVelocity(velocity + 1);
+    }
+
+    const decrementVelocity = () => {
+        setVelocity(velocity * .9);
+    }
 
     const fogColor = '#f1f1f1';
     const nearDistance = 30;
@@ -50,23 +65,13 @@ export default function Game(props: gameProps) {
     return (
         <>
             <fog attach="fog" args={[fogColor, nearDistance, farDistance]} />
-            <Car steerInput={props.steerInput} />
+            <Car meshRef={carMesh} steerInput={props.steerInput} />
 
             <Ground />
 
-            <BoostPad initialX={1} initialZ={0} velocity={velocity} rerenderZThreshold={rerenderZThreshold} updateVelocity={function (newVelocity: number): void {
-                throw new Error('Function not implemented.');
-            }} furthestZ={furthestZ} />
-
-            <BoostPad initialX={3} initialZ={-50} velocity={velocity} rerenderZThreshold={rerenderZThreshold} updateVelocity={function (newVelocity: number): void {
-                throw new Error('Function not implemented.');
-            }} furthestZ={furthestZ} />
-
-            <BoostPad initialX={-2} initialZ={-100} velocity={velocity} rerenderZThreshold={rerenderZThreshold} updateVelocity={function (newVelocity: number): void {
-                throw new Error('Function not implemented.');
-            }} furthestZ={furthestZ} />
-
-
+            <BoostPad initialX={1} initialZ={0} velocity={velocity} rerenderZThreshold={rerenderZThreshold} updateVelocity={incrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
+            <BoostPad initialX={3} initialZ={-50} velocity={velocity} rerenderZThreshold={rerenderZThreshold} updateVelocity={incrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
+            <BoostPad initialX={-2} initialZ={-100} velocity={velocity}  deboost={true} rerenderZThreshold={rerenderZThreshold} updateVelocity={decrementVelocity} furthestZ={furthestZ} carMeshRef={carMesh} />
 
             <ambientLight intensity={0.4} />
 

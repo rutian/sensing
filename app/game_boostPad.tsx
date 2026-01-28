@@ -9,7 +9,9 @@ interface boostPadProps {
     velocity: number,
     rerenderZThreshold: number;
     furthestZ:number;
-    updateVelocity: (newVelocity: number) => void;
+    carMeshRef: React.Ref<THREE.Mesh>;
+    deboost?: boolean;
+    updateVelocity: () => void;
 }
 
 export default function BoostPad( props: boostPadProps ) {
@@ -26,13 +28,20 @@ export default function BoostPad( props: boostPadProps ) {
             meshRef.current.position.x = (Math.random() - .5) * 2;
         }
 
-        const boostPadBoundingBox = new THREE.Box3().setFromObject(meshRef.current)
+        const boostPadBoundingBox = new THREE.Box3().setFromObject(meshRef.current);
+        const carBoundingBox = new THREE.Box3().setFromObject((props.carMeshRef as React.RefObject<THREE.Mesh>).current);
 
-        if (boostPadBoundingBox.intersectsBox(boostPadBoundingBox)) {
+        if (boostPadBoundingBox.intersectsBox(carBoundingBox)) {
             setIntersectsCar(true);
+            props.updateVelocity();
+        } else {
+            setIntersectsCar(false);
         }
 
     });
+
+    const boostColor = intersectsCar ? "#00ff91" : "#a7ffd9";
+    const deboostColor = intersectsCar ? "#ff0044" : "#ff7a87";
 
     return (
         <mesh
@@ -42,7 +51,7 @@ export default function BoostPad( props: boostPadProps ) {
             receiveShadow={true}
         >
             <coneGeometry args={[1, 1]} />
-            <meshStandardMaterial color={intersectsCar ? "#20fb9c" : "#42ffc6"} />
+            <meshStandardMaterial color={props.deboost ? deboostColor : boostColor} />
         </mesh>
     );
 }
