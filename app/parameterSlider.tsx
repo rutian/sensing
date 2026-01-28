@@ -4,26 +4,30 @@ import Typography from '@mui/material/Typography';
 
 interface SliderProps {
     label: string;
+    valueTextLabel?: string;
     initialValue: number;
     min: number;
     max: number;
     onChange: (newValue: number) => void;
-}
+} 
 
-function valuetext(value: number) {
-  return `${value}`;
-}
 
-export default function ParameterSlider( props: SliderProps) {
+
+export default function ParameterSlider(props: SliderProps) {
+  
+  function valuetext(value: number) {
+    return `${value}` + (props.valueTextLabel ? ` ${props.valueTextLabel}` : '');
+  }
+
   return (
     <Box sx={{ width: '100%', mt: 1 }}>
-      <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem' }}>
+      <Typography variant="overline" gutterBottom sx={{ fontSize: '1rem' }}>
         {props.label}
       </Typography>
       <Box sx={{ height: 20 }} />
       <Slider
-        defaultValue={props.initialValue}
-        getAriaValueText={valuetext}
+        value={props.initialValue}
+        valueLabelFormat={valuetext}
         step={.05}
         min={props.min}
         max={props.max}

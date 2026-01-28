@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { Box } from '@mui/material';
@@ -37,8 +37,8 @@ export default function Home() {
   const accelZArray: number[] = [];
   const accelZFilteredArray: number[] = [];
 
-  const lowPassAlpha = useRef<number>(0.2);
-  const jumpThreshold = useRef<number>(3.5);
+  const [lowPassAlpha, setLowPassAlpha] = useState(0.2);
+  const [jumpThreshold, setJumpThreshold] = useState(3.5);
   const possibleJumpThreshold = 2.0;
 
   const jumpDebounceTimeMillis = 300;
@@ -60,15 +60,15 @@ export default function Home() {
     accelZArray.push(event.acceleration?.z || 0);
 
     // filtered data
-    let filteredValue = (lowPassAlpha.current * (event.acceleration?.z || 0)) +
-      ((1 - lowPassAlpha.current) * (accelZFilteredArray.length > 0 ? accelZFilteredArray[accelZFilteredArray.length - 1] : 0));
+    let filteredValue = (lowPassAlpha * (event.acceleration?.z || 0)) +
+      ((1 - lowPassAlpha) * (accelZFilteredArray.length > 0 ? accelZFilteredArray[accelZFilteredArray.length - 1] : 0));
     accelZFilteredArray.push(filteredValue);
 
     // time stamp
     accelTimeStampArray.push((event.timeStamp + initialTime) / 1000);
 
     // jump detection
-    if (filteredValue > jumpThreshold.current) {
+    if (filteredValue > jumpThreshold) {
       const currentTime = event.timeStamp;
       if (currentTime - lastJumpTimeMillis > jumpDebounceTimeMillis) {
         console.log("Jump detected at time:", currentTime);
@@ -94,7 +94,7 @@ export default function Home() {
 
   const startGame = () => {
     setGameState('running');
-    
+
     // reinitialize our jump counter
     setNumberOfJumps(0);
     setNumberOfPossibleJumps(0);
@@ -160,7 +160,7 @@ export default function Home() {
   return (
     <Box sx={{ p: 0, maxWidth: 800, margin: '0 auto' }}>
 
-      <Box sx={{ position: 'relative', width: '100%', height: '100vh' , maxHeight: 900 }}>
+      <Box sx={{ position: 'relative', width: '100%', height: '100vh', maxHeight: 900 }}>
         <Canvas shadows style={{ background: '#f2f2f2', height: '100%', width: '100%' }}>
           <Game jumpInput={isJumping} steerInput={gamma} distance={distance} updateDistance={(val) => setDistance(val)} timeRemaining={timeRemaining} gameState={gameState} />
         </Canvas>
@@ -172,27 +172,30 @@ export default function Home() {
       <Box sx={{ position: 'absolute', top: 15, left: 15, width: '100%', color: '#333' }}>
         <Typography variant="overline" sx={{ lineHeight: '1rem', fontSize: '1rem' }}> Distance Traveled: {distance.toFixed(0)} m </Typography>
         <br></br>
-        <Typography variant="overline" sx={{ lineHeight: '1rem' ,fontSize: '1rem' }}> Time Remaining: {timeRemaining.toFixed(0)} seconds </Typography>
+        <Typography variant="overline" sx={{ lineHeight: '1rem', fontSize: '1rem' }}> Time Remaining: {timeRemaining.toFixed(0)} seconds </Typography>
       </Box>
 
-
-      <Box sx={{ pt: 12, pl: 4, pr:4,  maxWidth: 800, margin: '0 auto' }}>
+      <Box sx={{
+        pt: 12, pl: 4, pr: 4, maxWidth: 800, margin: '0 auto',
+        opacity: gameState === 'notStarted' ? 0.4 : 1,
+        pointerEvents: gameState === 'notStarted' ? 'none' : 'auto'
+      }}>
 
         <Typography variant="h4" sx={{ mt: 4, mb: 2 }}>
           Telemetry
         </Typography>
 
-        <Typography variant="h5" gutterBottom sx={{  mb: 0 }}>
+        <Typography variant="h5" gutterBottom sx={{ mb: 0 }}>
           Orientation for steering
         </Typography>
 
-        <TelemetryPlot 
+        <TelemetryPlot
           timeStamp={orientationTimeStampArray}
           label={["Roll"]}
           data={[gammaArray]}
           range={[-90, 90]} />
 
-        <Typography variant="h5" gutterBottom sx={{  mt: 2 }}>
+        <Typography variant="h5" gutterBottom sx={{ mt: 2 }}>
           Acceleration for jump detection
         </Typography>
 
@@ -202,31 +205,26 @@ export default function Home() {
           data={[accelZArray, accelZFilteredArray]}
           range={[-15, 15]} />
 
-        <ParameterSlider initialValue={lowPassAlpha.current}
+        <ParameterSlider initialValue={lowPassAlpha}
           min={0} max={1}
           label='Low-pass filter alpha'
-          onChange={(value) => {
-            console.log("Setting lowPassAlpha to ", value);
-            lowPassAlpha.current = value;
-          }} />
+          onChange={(value) => { setLowPassAlpha(value) }} />
 
-        <ParameterSlider initialValue={jumpThreshold.current}
+        <ParameterSlider initialValue={jumpThreshold}
           min={0} max={20}
-          label='Jump Detection Threshold (m/s²)'
-          onChange={(value) => {
-            console.log("Setting jumpThreshold to ", value);
-            jumpThreshold.current = value;
-          }} />
+          label='Jump Detection Threshold'
+          valueTextLabel="m/s²"
+          onChange={(value) => { setJumpThreshold(value) }} />
 
-        <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
+        <Typography variant="overline" gutterBottom sx={{ fontSize: '1rem', mt: 2 }}>
           # of Jumps: {numberOfJumps}
         </Typography>
         <div />
-        <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
+        <Typography variant="overline" gutterBottom sx={{ fontSize: '1rem', mt: 2 }}>
           # of Possible Jumps: {numberOfPossibleJumps}
         </Typography>
         <div />
-        <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mt: 2 }}>
+        <Typography variant="overline" gutterBottom sx={{ fontSize: '1rem', mt: 2 }}>
           "Sensitivity": {(numberOfJumps / (numberOfPossibleJumps)).toFixed(1)}
         </Typography>
 
