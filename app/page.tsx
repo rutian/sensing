@@ -4,12 +4,11 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
 import { useRef, useState } from "react";
-import {OrientationPlot} from "./orientationPlot";
-import AccelerationPlot from "./accelerationPlot";
 import ParameterSlider from './parameterSlider';
 import { Box } from '@mui/material';
 import Game from './game';
 import { Canvas } from '@react-three/fiber';
+import { TelemetryPlot } from './telemetryPlot';
 
 const gameTimeSeconds = 10;
 
@@ -155,7 +154,7 @@ export default function Home() {
   return (
     <Box sx={{ p: 0, maxWidth: 800, margin: '0 auto' }}>
 
-      <Box sx={{ position: 'relative', width: '100%', height: '700px' }}>
+      <Box sx={{ position: 'relative', width: '100%', height: '100vh' }}>
         <Canvas shadows style={{ background: '#f2f2f2', height: '100%', width: '100%' }}>
           <Game jumpInput={isJumping} steerInput={gamma} distance={distance} updateDistance={(val) => setDistance(val)} timeRemaining={timeRemaining} gameState={gameState} />
         </Canvas>
@@ -172,29 +171,29 @@ export default function Home() {
 
       <Box sx={{ pt: 12, pl: 4, pr:4,  maxWidth: 800, margin: '0 auto' }}>
 
-        <Typography variant="h5" sx={{ mt: 4 }}>
-          Telemetry/Parameters
+        <Typography variant="h4" sx={{ mt: 4, mb: 2 }}>
+          Telemetry
         </Typography>
 
-        <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mb: 2 }}>
-          Orientation for steering:
+        <Typography variant="h5" gutterBottom sx={{  mb: 0 }}>
+          Orientation for steering
         </Typography>
 
-        <OrientationPlot
-        timeStamp={orientationTimeStampArray}
-        roll={gammaArray}
-        />
+        <TelemetryPlot 
+          timeStamp={orientationTimeStampArray}
+          label={["Roll"]}
+          data={[gammaArray]}
+          range={[-90, 90]} />
 
-        {/* <div className="h-8"></div> */}
-        {/* 
-      <AccelerationPlot
-        timeStamp={accelTimeStampArray}
-        z={accelZArray}
-        filteredZ={accelZFilteredArray}/> */}
+        <Typography variant="h5" gutterBottom sx={{  mt: 2 }}>
+          Acceleration for jump detection
+        </Typography>
 
-        {/* <div className="h-8"></div> */}
-
-
+        <TelemetryPlot
+          timeStamp={accelTimeStampArray}
+          label={["raw accel", "filtered accel"]}
+          data={[accelZArray, accelZFilteredArray]}
+          range={[-20, 20]} />
 
         <ParameterSlider initialValue={lowPassAlpha.current}
           min={0} max={1}
