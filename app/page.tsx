@@ -21,6 +21,7 @@ export default function Home() {
   const [timeRemaining, setTimeRemaining] = useState(gameTimeSeconds);
   const [gameState, setGameState] = useState<'notStarted' | 'running' | 'ended'>('notStarted');
 
+  const [isJumping, setIsJumping] = useState(false);
   const [numberOfJumps, setNumberOfJumps] = useState(0);
   const [numberOfPossibleJumps, setNumberOfPossibleJumps] = useState(0);
 
@@ -74,6 +75,10 @@ export default function Home() {
         console.log("Jump detected at time:", currentTime);
         lastJumpTimeMillis = currentTime;
         setNumberOfJumps((prev) => prev + 1);
+        setIsJumping(true);
+        setTimeout(() => {
+          setIsJumping(false);
+        }, 100);
       }
     }
 
@@ -154,7 +159,7 @@ export default function Home() {
 
       <Box sx={{ position: 'relative', width: '100%', height: '700px' }}>
         <Canvas shadows style={{ background: '#f2f2f2', height: '100%', width: '100%' }}>
-          <Game jumpInput={true} steerInput={gamma} distance={distance} updateDistance={(val) => setDistance(val)} timeRemaining={timeRemaining} gameState={gameState} />
+          <Game jumpInput={isJumping} steerInput={gamma} distance={distance} updateDistance={(val) => setDistance(val)} timeRemaining={timeRemaining} gameState={gameState} />
         </Canvas>
         {(gameState != 'running') ?
           <Button onClick={() => requestOrientationPermission()} variant="contained" sx={{ background: '#818584', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', borderRadius: '15px' }}>{buttonText}</Button> :
