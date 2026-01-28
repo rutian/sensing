@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { Box } from '@mui/material';
@@ -37,8 +37,8 @@ export default function Home() {
   const accelZArray: number[] = [];
   const accelZFilteredArray: number[] = [];
 
-  const [lowPassAlpha, setLowPassAlpha] = useState(0.2);
-  const [jumpThreshold, setJumpThreshold] = useState(3.5);
+  const lowPassAlpha = useRef(0.2);
+  const jumpThreshold = useRef(3.5);
   const possibleJumpThreshold = 2.0;
 
   const jumpDebounceTimeMillis = 300;
@@ -60,15 +60,15 @@ export default function Home() {
     accelZArray.push(event.acceleration?.z || 0);
 
     // filtered data
-    let filteredValue = (lowPassAlpha * (event.acceleration?.z || 0)) +
-      ((1 - lowPassAlpha) * (accelZFilteredArray.length > 0 ? accelZFilteredArray[accelZFilteredArray.length - 1] : 0));
+    let filteredValue = (lowPassAlpha.current * (event.acceleration?.z || 0)) +
+      ((1 - lowPassAlpha.current) * (accelZFilteredArray.length > 0 ? accelZFilteredArray[accelZFilteredArray.length - 1] : 0));
     accelZFilteredArray.push(filteredValue);
 
     // time stamp
     accelTimeStampArray.push((event.timeStamp + initialTime) / 1000);
 
     // jump detection
-    if (filteredValue > jumpThreshold) {
+    if (filteredValue > jumpThreshold.current) {
       const currentTime = event.timeStamp;
       if (currentTime - lastJumpTimeMillis > jumpDebounceTimeMillis) {
         console.log("Jump detected at time:", currentTime);
@@ -205,16 +205,16 @@ export default function Home() {
           data={[accelZArray, accelZFilteredArray]}
           range={[-15, 15]} />
 
-        <ParameterSlider initialValue={lowPassAlpha}
+        <ParameterSlider value={lowPassAlpha.current}
           min={0} max={1}
           label='Low-pass filter alpha'
-          onChange={(value) => { setLowPassAlpha(value) }} />
+          onChange={(value) => { lowPassAlpha.current = value; }} />
 
-        <ParameterSlider initialValue={jumpThreshold}
+        <ParameterSlider value={jumpThreshold.current}
           min={0} max={20}
           label='Jump Detection Threshold'
           valueTextLabel="m/s²"
-          onChange={(value) => { setJumpThreshold(value) }} />
+          onChange={(value) => { jumpThreshold.current = value}} />
 
         <Typography variant="overline" gutterBottom sx={{ fontSize: '1rem', mt: 2 }}>
           # of Jumps: {numberOfJumps}

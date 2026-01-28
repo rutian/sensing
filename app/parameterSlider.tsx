@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 interface SliderProps {
     label: string;
     valueTextLabel?: string;
-    initialValue: number;
+    value: number;
     min: number;
     max: number;
     onChange: (newValue: number) => void;
@@ -26,7 +26,7 @@ export default function ParameterSlider(props: SliderProps) {
       </Typography>
       <Box sx={{ height: 20 }} />
       <Slider
-        value={props.initialValue}
+        value={props.value}
         valueLabelFormat={valuetext}
         step={.05}
         min={props.min}
