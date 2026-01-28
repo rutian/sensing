@@ -1,22 +1,24 @@
-import { useRef } from 'react';
-import uPlot from 'uplot';
+import React from 'react';
+import { useEffect, useRef } from 'react';
 import UplotReact from 'uplot-react';
 import 'uplot/dist/uPlot.min.css';
 
 interface OrientationData {
   timeStamp: number[];
-  pitch: number[];
+  pitch?: number[];
   roll: number[];
   yaw?: number[];
 }
 
-export default function OrientationPlot(props: OrientationData) {
+export const OrientationPlot = React.memo((props: OrientationData)=> {
 
   const options: uPlot.Options = {
-    title: "Device Orientation Over Time",
     width: 300,
     height: 300,
     pxAlign: false,
+    legend: {
+      show: true,
+    },
     scales: {
       x: {
         time: true,
@@ -24,7 +26,7 @@ export default function OrientationPlot(props: OrientationData) {
       },
       y: {
         auto: false,
-        range: [-90, 90],
+        range: [-50, 50],
       },
     },
     axes: [
@@ -35,22 +37,14 @@ export default function OrientationPlot(props: OrientationData) {
     series: [
       { show: false },
       {
-        label: "Pitch (Beta)",
-        stroke: "blue",
-        fill: "rgba(0, 0, 255, 0.1)",
-      },
-      {
-        label: "Roll (Gamma)",
         stroke: "green",
         fill: "rgba(0, 255, 0, 0.1)",
       },
-
     ],
   };
 
   const data: uPlot.AlignedData = [
     props.timeStamp,
-    props.pitch,
     props.roll,
   ];
 
@@ -63,16 +57,24 @@ export default function OrientationPlot(props: OrientationData) {
     }
   };
 
+  useEffect(() => {
+    console.log('using effect..., how often does this run?');
+    setInterval(updatePlot, 20);
+  }, []);
+
+
   return (
-    <UplotReact
-      options={options}
-      data={data}
-      onCreate={(chart) => {
-        chartRef.current = chart;
-        setInterval(updatePlot, 10);
-      }}
-      onDelete={(chart) => { }}
-    />
+    <>
+      <UplotReact
+        options={options}
+        data={data}
+        onCreate={(chart) => {
+          chartRef.current = chart;
+          console.log('recreating chart...')
+        }}
+        onDelete={(chart) => { }}
+      />
+    </>
   );;
 
-}
+}, ()=> true );

@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
 import { useRef, useState } from "react";
-import OrientationPlot from "./orientationPlot";
+import {OrientationPlot} from "./orientationPlot";
 import AccelerationPlot from "./accelerationPlot";
 import ParameterSlider from './parameterSlider';
 import { Box } from '@mui/material';
@@ -103,7 +103,6 @@ export default function Home() {
           return 0;
         }
         return (prevTime - 1);
-
       })
     }, 1000);
   }
@@ -144,7 +143,6 @@ export default function Home() {
     gammaArray.push(event.gamma || 0);
   }
 
-
   let buttonText = "";
   if (gameState === 'notStarted') {
     buttonText = "Enable Motion Sensing To Start";
@@ -178,11 +176,14 @@ export default function Home() {
           Telemetry/Parameters
         </Typography>
 
-        {/* <OrientationPlot
+        <Typography variant="overline" gutterBottom sx={{ fontSize: '.8rem', mb: 2 }}>
+          Orientation for steering:
+        </Typography>
+
+        <OrientationPlot
         timeStamp={orientationTimeStampArray}
-        pitch={betaArray}
         roll={gammaArray}
-        /> */}
+        />
 
         {/* <div className="h-8"></div> */}
         {/* 

@@ -20,8 +20,8 @@ export default function Car(props: carProps) {
 
         if (props.jumping) {
             meshRef.current.position.y += .5;
-            if (meshRef.current.position.y > 3) {
-                meshRef.current.position.y = 3;
+            if (meshRef.current.position.y > 5) {
+                meshRef.current.position.y = 5;
             }
         } else {
             meshRef.current.position.y -= .5;
